@@ -65,7 +65,6 @@ class TestConsole(unittest.TestCase):
             self.consol.onecmd("\n")
             self.assertEqual('', f.getvalue())
 
-
     @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db",
                      "can't run")
     def test_create(self):
