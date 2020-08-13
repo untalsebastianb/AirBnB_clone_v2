@@ -65,11 +65,6 @@ class TestConsole(unittest.TestCase):
             self.consol.onecmd("\n")
             self.assertEqual('', f.getvalue())
 
-    def test_quit(self):
-        """test quit command inpout"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("exit")
-            self.assertEqual('', f.getvalue())
 
     @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db",
                      "can't run")
