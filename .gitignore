@@ -5,7 +5,5 @@ models/engine/__pycache__/
 main_test.py
 __pycache__/
 tests/__pycache__/
-tests/test_console.py
 tests/test_models/__pycache__/
 tests/test_models/test_engine/__pycache__/
-tests/test_models/test_engine/test_db_storage.py
