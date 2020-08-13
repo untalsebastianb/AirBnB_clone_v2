@@ -1,52 +1,64 @@
 #!/usr/bin/python3
-"""test for console"""
+""" test_console module """
+
 import unittest
+import datetime
+from uuid import UUID
+import json
+import os
+from os import getenv
 from unittest.mock import patch
 from io import StringIO
+import MySQLdb
 import pep8
-import os
-import json
-import console
 import tests
+import console
 from console import HBNBCommand
 from models.base_model import BaseModel
-from models.user import User
 from models.state import State
+from models.user import User
 from models.city import City
 from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 from models.engine.file_storage import FileStorage
+from models.engine.db_storage import DBStorage
 
 
-class TestConsole(unittest.TestCase):
-    """this will test the console"""
+class test_console(unittest.TestCase):
+    """ test_console class """
 
-    @classmethod
-    def setUpClass(cls):
-        """setup for the test"""
-        cls.consol = HBNBCommand()
+    def __init__(self, *args, **kwargs):
+        """ __init__ function """
+        super().__init__(*args, **kwargs)
+        self.name = 'HBNBCommand'
+        self.console = HBNBCommand()
+        if getenv('HBNB_TYPE_STORAGE') == "db":
+            self.db = MySQLdb.connect(user=os.environ.get('HBNB_MYSQL_USER'),
+                                      passwd=os.environ.get('HBNB_MYSQL_PWD'),
+                                      db=os.environ.get('HBNB_MYSQL_DB'),
+                                      port=3306,
+                                      host=os.environ.get('HBNB_MYSQL_HOST'))
 
-    @classmethod
-    def teardown(cls):
-        """at the end of the test this will tear it down"""
-        del cls.consol
+    def setUp(self):
+        """ setUp function """
+        pass
 
     def tearDown(self):
-        """Remove temporary file (file.json) created as a result"""
-        try:
+        """ removing file.json created and closing DB connection """
+        if os.access("file.json", os.F_OK):
             os.remove("file.json")
-        except Exception:
-            pass
+        if getenv('HBNB_TYPE_STORAGE') == "db":
+            self.db.close()
 
-    def test_pep8_console(self):
-        """Pep8 console.py"""
+    def test_pep8_style(self):
+        """ Checking pep8 coding style """
         style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(["console.py"])
-        self.assertEqual(p.total_errors, 0, 'fix Pep8')
+        output = style.check_files(["console.py"])
+        self.assertEqual(output.total_errors, 0, 'fix Pep8')
 
-    def test_docstrings_in_console(self):
-        """checking for docstrings"""
+    def test_doctstrings(self):
+        """ Checking docstring existance """
         self.assertIsNotNone(console.__doc__)
         self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
         self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
@@ -56,138 +68,43 @@ class TestConsole(unittest.TestCase):
         self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
         self.assertIsNotNone(HBNBCommand.do_all.__doc__)
         self.assertIsNotNone(HBNBCommand.do_update.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_count.__doc__)
         self.assertIsNotNone(HBNBCommand.default.__doc__)
 
     def test_emptyline(self):
-        """Test empty line input"""
+        """ Checking correct output on empty line """
         with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("\n")
+            self.console.onecmd(' ')
             self.assertEqual('', f.getvalue())
 
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db",
-                     "can't run")
     def test_create(self):
-        """Test create command inpout"""
+        """ Testing the create command """
+        if(os.getenv("HBNB_TYPE_STORAGE") != "db"):
+            with patch('sys.stdout', new=StringIO()) as f:
+                self.console.onecmd('create State')
+                s = f.getvalue()
+            with patch('sys.stdout', new=StringIO()) as f:
+                self.console.onecmd('all State')
+                self.assertEqual('["[State]', f.getvalue()[:9])
+            self.console.onecmd("destroy State " + s)
+
         with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("create")
+            self.console.onecmd("create")
             self.assertEqual(
                 "** class name missing **\n", f.getvalue())
         with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("create asdfsfsd")
+            self.console.onecmd("create Buenoclass")
             self.assertEqual(
                 "** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("create User")
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("all User")
-            self.assertEqual(
-                '["[User]', f.getvalue()[:8])
 
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db",
-                     "can't run")
-    def test_show(self):
-        """Test show command inpout"""
+        s = ""
         with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("show")
-            self.assertEqual(
-                "** class name missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("show asdfsdrfs")
-            self.assertEqual(
-                "** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("show BaseModel")
-            self.assertEqual(
-                "** instance id missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("show BaseModel abcd-123")
-            self.assertEqual(
-                "** no instance found **\n", f.getvalue())
+            self.console.onecmd('create State name="Perreo"')
+            s = f.getvalue()
 
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "can't run")
-    def test_destroy(self):
-        """Test destroy command inpout"""
         with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy")
-            self.assertEqual(
-                "** class name missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy Galaxy")
-            self.assertEqual(
-                "** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy User")
-            self.assertEqual(
-                "** instance id missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy BaseModel 12345")
-            self.assertEqual(
-                "** no instance found **\n", f.getvalue())
+            self.console.onecmd("all State")
+            out = f.getvalue()
+            self.assertEqual('["[State]', out[:9])
+            self.assertIn("Perreo", out)
 
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "can't run")
-    def test_all(self):
-        """Test all command inpout"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("all asdfsdfsd")
-            self.assertEqual("** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("all State")
-            self.assertEqual("[]\n", f.getvalue())
-
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "can't run")
-    def test_destroy(self):
-        """Test destroy command inpout"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy")
-            self.assertEqual(
-                "** class name missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy Galaxy")
-            self.assertEqual(
-                "** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy User")
-            self.assertEqual(
-                "** instance id missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("destroy BaseModel 12345")
-            self.assertEqual(
-                "** no instance found **\n", f.getvalue())
-
-    @unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "can't run")
-    def test_update(self):
-        """Test update command inpout"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update")
-            self.assertEqual(
-                "** class name missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update sldkfjsl")
-            self.assertEqual(
-                "** class doesn't exist **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update User")
-            self.assertEqual(
-                "** instance id missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update User 12345")
-            self.assertEqual(
-                "** no instance found **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("all User")
-            obj = f.getvalue()
-        my_id = obj[obj.find('(')+1:obj.find(')')]
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update User " + my_id)
-            self.assertEqual(
-                "** attribute name missing **\n", f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            self.consol.onecmd("update User " + my_id + " Name")
-            self.assertEqual(
-                "** value missing **\n", f.getvalue())
-
-
-if __name__ == "__main__":
-    if os.getenv("HBNB_TYPE_STORAGE") != "db":
-        unittest.main()
+        self.console.onecmd("destroy State " + s)
