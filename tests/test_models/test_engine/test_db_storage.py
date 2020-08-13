@@ -86,15 +86,6 @@ class TestDBStorage(unittest.TestCase):
         self.assertIsNotNone(DBStorage.delete.__doc__)
         self.assertIsNotNone(DBStorage.reload.__doc__)
 
-    def test_permissions(self):
-        """test read-write-execute permissions"""
-        read = os.access('models/engine/db_storage.py', os.R_OK)
-        self.assertTrue(read)
-        write = os.access('models/engine/db_storage.py', os.W_OK)
-        self.assertTrue(write)
-        exe = os.access('models/engine/db_storage.py', os.X_OK)
-        self.assertTrue(exe)
-
     @unittest.skipIf(type(models.storage) == FileStorage,
                      "Testing FileStorage")
     def test_attributes(self):

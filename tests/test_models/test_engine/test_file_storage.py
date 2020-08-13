@@ -82,15 +82,6 @@ class TestFileStorage(unittest.TestCase):
         p = style.check_files(['models/engine/file_storage.py'])
         self.assertEqual(p.total_errors, 0, "fix pep8")
 
-    def test_permissions(self):
-        """test read-write-execute permissions"""
-        read = os.access('models/engine/file_storage.py', os.R_OK)
-        self.assertTrue(read)
-        write = os.access('models/engine/file_storage.py', os.W_OK)
-        self.assertTrue(write)
-        exe = os.access('models/engine/file_storage.py', os.X_OK)
-        self.assertTrue(exe)
-
     def test_docstrings(self):
         """Check for docstrings."""
         self.assertIsNotNone(FileStorage.__doc__)
