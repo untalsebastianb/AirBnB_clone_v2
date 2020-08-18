@@ -7,6 +7,7 @@ import os
 
 
 env.hosts = ['35.231.155.83', '54.161.4.135']
+route = None
 
 
 def do_pack():
@@ -56,12 +57,13 @@ def do_deploy(archive_path):
             run('ln -s /data/web_static/releases/{}/ /data/web_static/current\
 '.format(folder))
         except Exception as error:
-            pass
+            print(error)
             return(False)
 
 
 def deploy():
     """ Deployment """
+    global route
     route = do_pack()
     if route is None:
         return False
