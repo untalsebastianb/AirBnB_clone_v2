@@ -19,9 +19,9 @@ def do_pack():
     local("mkdir -p versions")
     sucess = local('tar -cvzf {} web_static'.format(path), capture=True)
     if sucess.succeeded:
-        print(path)
+        return(path)
     else:
-        print(None)
+        return(None)
 
 
 def do_deploy(archive_path):
