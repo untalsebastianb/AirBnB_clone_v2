@@ -66,4 +66,4 @@ def deploy():
     if route is None:
         return False
     else:
-        do_deploy(route)
+        return (do_deploy(route))
