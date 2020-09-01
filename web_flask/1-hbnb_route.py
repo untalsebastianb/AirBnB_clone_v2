@@ -19,3 +19,6 @@ def sayHello():
 def sayHello2():
     """Function to say hello"""
     return 'HBNB'
+
+if __name__ == "__main__":
+    app.run(port=5000, host='0.0.0.0')
