@@ -27,7 +27,7 @@ def anotherRoute(var):
     return 'C {}'.format(var.replace('_', ' '))
 
 
-@app.route('/python', strict_slashes=False)
+@app.route('/python')
 @app.route('/python/<text>')
 def python(text='is cool'):
     """Python is cool"""
