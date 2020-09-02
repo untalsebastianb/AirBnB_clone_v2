@@ -61,3 +61,7 @@ class FileStorage:
             k = "{}.{}".format(obj.__class__.__name__, obj.id)
             del self.__objects[k]
             self.save()
+
+    def close(self):
+        """ Close method """
+        self.reload(self)
