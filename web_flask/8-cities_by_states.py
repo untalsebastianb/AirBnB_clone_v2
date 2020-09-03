@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+""" Module comment """
 
 from flask import Flask
 from models import storage
